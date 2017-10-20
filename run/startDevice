@@ -6,7 +6,7 @@ echo RGPIO device is running, kill it first. Exiting...
 exit
 fi
 
-java -cp /home/pi/RGPIODevice/RGPIODevice.jar:/home/pi/git/RGPIO/lib/'*' rgpiodevice/RGPIODevice
+java -cp /home/pi/git/RGPIODevice/RGPIODevice.jar:/home/pi/git/RGPIO/lib/'*' rgpiodevice/RGPIODevice
 
 
 
