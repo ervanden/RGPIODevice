@@ -1,8 +1,7 @@
 package rgpiodevice;
 
+import java.util.Random;
 import pidevice.*;
-
-
 
 class RGPIODeviceRun implements GetCommandListener {
 
@@ -10,14 +9,12 @@ class RGPIODeviceRun implements GetCommandListener {
 
     static Float tempValue = 25f;
 
-
     public String onGetCommand(DeviceInput deviceInput) {
         if (deviceInput == temp) {
             return (tempValue.toString());
         }
         return ("impossible!");
     }
-
 
     public void start() {
 
@@ -40,31 +37,56 @@ class RGPIODeviceRun implements GetCommandListener {
         }
 
     }
-    
+
     class SensorThread extends Thread {
 
     // thread that simulates changing temperature and distance values
+        int interval;
+        GaugeSource tempSource = new GaugeSource(12345L,25f);
         
-    int interval;
+        public SensorThread(int interval) {
+            super("SensorThread");
+            this.interval = interval;
+        }
 
-    public SensorThread(int interval) {
-        super("SensorThread");
-        this.interval = interval;
-    }
+        public void run() {
 
-    public void run() {
-        float tempIncrement=0.1f;
-        while (true) {
-            try {
-                Thread.sleep(interval * 1000);
-                if (tempValue>30f) tempIncrement=-1f; //-0.1f;
-                if (tempValue<20f) tempIncrement=1f;  //+0.1f;
-                tempValue=tempValue+tempIncrement;
-            } catch (InterruptedException ie) {
+            while (true) {
+                try {
+                    Thread.sleep(interval * 1000);      
+                    tempValue = tempSource.getValue();
+                } catch (InterruptedException ie) {
+                }
             }
         }
     }
-}
+
+class GaugeSource {
+
+        float value;
+        float slope = 0;
+        int countdown = 0;
+        Random RANDOM;
+
+        GaugeSource(long seed, float value) {
+            RANDOM = new Random(seed);
+            this.value = value;
+        }
+
+        float getValue() {
+            if (countdown == 0) {
+                // new slope and countdown     
+                slope = (RANDOM.nextFloat() - 0.5f);
+                countdown = RANDOM.nextInt(5) + 1;
+            }
+            value = value + slope * 0.01f;
+//           System.out.println(slope + "\t" + value);
+            countdown--;
+            return value;
+        }
+
+    }
+
 }
 
 public class RGPIODevice {
