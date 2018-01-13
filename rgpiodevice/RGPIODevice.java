@@ -6,12 +6,17 @@ import pidevice.*;
 class RGPIODeviceRun implements GetCommandListener {
 
     DeviceInput temp;      // analog input
+    DeviceInput humi;  // analog input
 
-    static Float tempValue = 25f;
+    static Float tempValue=25f;
+    static Float humiValue=50f;
 
     public String onGetCommand(DeviceInput deviceInput) {
         if (deviceInput == temp) {
             return (tempValue.toString());
+        }
+        if (deviceInput == humi) {
+            return (humiValue.toString());
         }
         return ("impossible!");
     }
@@ -22,10 +27,12 @@ class RGPIODeviceRun implements GetCommandListener {
         // From this information a Report string can be generated
         // PiDevice will call onSetCommand() and onGetCommand() when GET or SET is received
         PiDevice.deviceModel = "RASPBERRY";
-        temp = PiDevice.addAnalogInput("temp");
+        temp = PiDevice.addAnalogInput("temperature");
+        humi = PiDevice.addAnalogInput("humidity");
         temp.getCommandListener = this;
+        humi.getCommandListener = this;
 
-        (new SensorThread(1)).start();  // simulates changing values for temp
+        (new SensorThread(2)).start();  // changes the values every 2 seconds
 
         PiDevice.runDevice(2600, 2500);
 
@@ -40,10 +47,11 @@ class RGPIODeviceRun implements GetCommandListener {
 
     class SensorThread extends Thread {
 
-    // thread that simulates changing temperature and distance values
+        // thread that simulates changing temperature and humidity values
         int interval;
-        GaugeSource tempSource = new GaugeSource(12345L,25f);
-        
+        GaugeSource tempSource = new GaugeSource(12345L, tempValue);
+        GaugeSource humiSource = new GaugeSource(67890L, humiValue);
+
         public SensorThread(int interval) {
             super("SensorThread");
             this.interval = interval;
@@ -53,15 +61,16 @@ class RGPIODeviceRun implements GetCommandListener {
 
             while (true) {
                 try {
-                    Thread.sleep(interval * 1000);      
+                    Thread.sleep(interval * 1000);
                     tempValue = tempSource.getValue();
+                    humiValue = humiSource.getValue();
                 } catch (InterruptedException ie) {
                 }
             }
         }
     }
 
-class GaugeSource {
+    class GaugeSource {
 
         float value;
         float slope = 0;
