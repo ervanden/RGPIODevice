@@ -8,8 +8,8 @@ class RGPIODeviceRun implements GetCommandListener {
     DeviceInput temp;      // analog input
     DeviceInput humi;  // analog input
 
-    static Float tempValue=25f;
-    static Float humiValue=50f;
+    static Integer tempValue = 2500;
+    static Integer humiValue = 5000;
 
     public String onGetCommand(DeviceInput deviceInput) {
         if (deviceInput == temp) {
@@ -72,26 +72,35 @@ class RGPIODeviceRun implements GetCommandListener {
 
     class GaugeSource {
 
+        float initialValue;
         float value;
         float slope = 0;
         int countdown = 0;
         Random RANDOM;
 
-        GaugeSource(long seed, float value) {
+        GaugeSource(long seed, int value) {
             RANDOM = new Random(seed);
             this.value = value;
+            this.initialValue = value;
         }
 
-        float getValue() {
+        int getValue() {
             if (countdown == 0) {
-                // new slope and countdown     
-                slope = (RANDOM.nextFloat() - 0.5f);
+                // new slope and countdown  
+                float correction = 0f;
+                if ((value - initialValue) > 0.2 * initialValue) {
+                    correction = -0.2f;
+                }
+                if ((initialValue - value) > 0.2 * initialValue) {
+                    correction = +0.2f;
+                }
+                slope = 100 * ((RANDOM.nextFloat() - 0.5f + correction));
                 countdown = RANDOM.nextInt(5) + 1;
             }
-            value = value + slope * 0.01f;
+            value = value + slope;
 //           System.out.println(slope + "\t" + value);
             countdown--;
-            return value;
+            return Math.round(value);
         }
 
     }
