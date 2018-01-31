@@ -12,6 +12,7 @@ class RGPIODeviceRun implements GetCommandListener {
     static Integer[] humiValue = new Integer[4]; //5000;
 
     public String onGetCommand(DeviceInput deviceInput) {
+        System.out.println("receiving get command for "+deviceInput.name);
         for (int i = 0; i < 4; i++) {
             if (deviceInput == tempArray[i]) {
                 return (tempValue[i].toString());
@@ -30,10 +31,14 @@ class RGPIODeviceRun implements GetCommandListener {
         // PiDevice will call onSetCommand() and onGetCommand() when GET or SET is received
         PiDevice.deviceModel = "RASPBERRY";
         for (int i = 0; i < 4; i++) {
+            System.out.println("creating PiDevice pins");
             tempArray[i] = PiDevice.addAnalogInput("T" + i);
             humiArray[i] = PiDevice.addAnalogInput("H" + i);
+            tempValue[i]= new Integer(0);
+            humiValue[i]= new Integer(0);
             tempArray[i].getCommandListener = this;
             humiArray[i].getCommandListener = this;
+                        System.out.println("done creating PiDevice pins");
         }
         (new SensorThread(2)).start();  // changes the values every 2 seconds
 
@@ -53,15 +58,15 @@ class RGPIODeviceRun implements GetCommandListener {
         // thread that simulates changing temperature and humidity values
         int interval;
         GaugeSource[] tempSource = new GaugeSource[4];
-
         GaugeSource[] humiSource = new GaugeSource[4];
 
         public SensorThread(int interval) {
             super("SensorThread");
             this.interval = interval;
+            long seed=12345L;
             for (int i = 0; i < 4; i++) {
-                tempSource[i] = new GaugeSource(12345L, 2500);
-                humiSource[i] = new GaugeSource(12045L, 5000);
+                tempSource[i] = new GaugeSource(seed++, 2500);
+                humiSource[i] = new GaugeSource(seed++, 5000);
             };
         }
 
