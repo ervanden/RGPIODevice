@@ -5,18 +5,20 @@ import pidevice.*;
 
 class RGPIODeviceRun implements GetCommandListener {
 
-    DeviceInput temp;      // analog input
-    DeviceInput humi;  // analog input
+    DeviceInput[] tempArray = new DeviceInput[4]; // analog input
+    DeviceInput[] humiArray = new DeviceInput[4];  // analog input
 
-    static Integer tempValue = 2500;
-    static Integer humiValue = 5000;
+    static Integer[] tempValue = new Integer[4]; //2500;
+    static Integer[] humiValue = new Integer[4]; //5000;
 
     public String onGetCommand(DeviceInput deviceInput) {
-        if (deviceInput == temp) {
-            return (tempValue.toString());
-        }
-        if (deviceInput == humi) {
-            return (humiValue.toString());
+        for (int i = 0; i < 4; i++) {
+            if (deviceInput == tempArray[i]) {
+                return (tempValue[i].toString());
+            }
+            if (deviceInput == humiArray[i]) {
+                return (humiValue[i].toString());
+            }
         }
         return ("impossible!");
     }
@@ -27,11 +29,12 @@ class RGPIODeviceRun implements GetCommandListener {
         // From this information a Report string can be generated
         // PiDevice will call onSetCommand() and onGetCommand() when GET or SET is received
         PiDevice.deviceModel = "RASPBERRY";
-        temp = PiDevice.addAnalogInput("temperature");
-        humi = PiDevice.addAnalogInput("humidity");
-        temp.getCommandListener = this;
-        humi.getCommandListener = this;
-
+        for (int i = 0; i < 4; i++) {
+            tempArray[i] = PiDevice.addAnalogInput("T" + i);
+            humiArray[i] = PiDevice.addAnalogInput("H" + i);
+            tempArray[i].getCommandListener = this;
+            humiArray[i].getCommandListener = this;
+        }
         (new SensorThread(2)).start();  // changes the values every 2 seconds
 
         PiDevice.runDevice(2600, 2500);
@@ -49,12 +52,17 @@ class RGPIODeviceRun implements GetCommandListener {
 
         // thread that simulates changing temperature and humidity values
         int interval;
-        GaugeSource tempSource = new GaugeSource(12345L, tempValue);
-        GaugeSource humiSource = new GaugeSource(67890L, humiValue);
+        GaugeSource[] tempSource = new GaugeSource[4];
+
+        GaugeSource[] humiSource = new GaugeSource[4];
 
         public SensorThread(int interval) {
             super("SensorThread");
             this.interval = interval;
+            for (int i = 0; i < 4; i++) {
+                tempSource[i] = new GaugeSource(12345L, 2500);
+                humiSource[i] = new GaugeSource(12045L, 5000);
+            };
         }
 
         public void run() {
@@ -62,8 +70,10 @@ class RGPIODeviceRun implements GetCommandListener {
             while (true) {
                 try {
                     Thread.sleep(interval * 1000);
-                    tempValue = tempSource.getValue();
-                    humiValue = humiSource.getValue();
+                    for (int i = 0; i < 4; i++) {
+                        tempValue[i] = tempSource[i].getValue();
+                        humiValue[i] = humiSource[i].getValue();
+                    }
                 } catch (InterruptedException ie) {
                 }
             }
