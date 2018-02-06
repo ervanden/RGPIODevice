@@ -12,7 +12,6 @@ class RGPIODeviceRun implements GetCommandListener {
     static Integer[] humiValue = new Integer[4]; //5000;
 
     public String onGetCommand(DeviceInput deviceInput) {
-        System.out.println("receiving get command for "+deviceInput.name);
         for (int i = 0; i < 4; i++) {
             if (deviceInput == tempArray[i]) {
                 return (tempValue[i].toString());
@@ -31,16 +30,15 @@ class RGPIODeviceRun implements GetCommandListener {
         // PiDevice will call onSetCommand() and onGetCommand() when GET or SET is received
         PiDevice.deviceModel = "RASPBERRY";
         for (int i = 0; i < 4; i++) {
-            System.out.println("creating PiDevice pins");
+            // creating PiDevice pins
             tempArray[i] = PiDevice.addAnalogInput("T" + i);
             humiArray[i] = PiDevice.addAnalogInput("H" + i);
             tempValue[i]= new Integer(0);
             humiValue[i]= new Integer(0);
             tempArray[i].getCommandListener = this;
             humiArray[i].getCommandListener = this;
-                        System.out.println("done creating PiDevice pins");
         }
-        (new SensorThread(2)).start();  // changes the values every 2 seconds
+        (new SensorThread(30)).start();  // changes the values every x seconds
 
         PiDevice.runDevice(2600, 2500);
 
@@ -103,17 +101,16 @@ class RGPIODeviceRun implements GetCommandListener {
             if (countdown == 0) {
                 // new slope and countdown  
                 float correction = 0f;
-                if ((value - initialValue) > 0.2 * initialValue) {
+                if ((value - initialValue) > 0.1 * initialValue) {
                     correction = -0.2f;
                 }
-                if ((initialValue - value) > 0.2 * initialValue) {
+                if ((initialValue - value) > 0.1 * initialValue) {
                     correction = +0.2f;
                 }
                 slope = 100 * ((RANDOM.nextFloat() - 0.5f + correction));
                 countdown = RANDOM.nextInt(5) + 1;
             }
             value = value + slope;
-//           System.out.println(slope + "\t" + value);
             countdown--;
             return Math.round(value);
         }
