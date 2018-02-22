@@ -6,11 +6,11 @@ import tcputils.TelnetCommand;
 
 class RGPIODeviceRun implements GetCommandListener {
 
-    DeviceInput[] pduArray = new DeviceInput[8]; // analog input
-    static Integer[] pduValue = new Integer[8];
+    DeviceInput[] pduArray = new DeviceInput[9]; // array has 0 - 8, we use 1 - 8
+    static Integer[] pduValue = new Integer[9];  
 
     public String onGetCommand(DeviceInput deviceInput) {
-        for (int i = 0; i < 8; i++) {
+        for (int i = 1; i <= 8; i++) {
             if (deviceInput == pduArray[i]) {
                 return (pduValue[i].toString());
             }
@@ -83,7 +83,7 @@ class RGPIODeviceRun implements GetCommandListener {
                     tc.password = "apc";
                     tc.commandprompt = "apc>";
 
-                    for (int i = 8; i >= 1; i--) {
+                    for (int i = 1; i <=8; i++) {
                         tc.remoteip = "172.68.8.4" + i;
                         System.out.println("querying " + tc.remoteip);
                         String result = tc.session("devReading power");
