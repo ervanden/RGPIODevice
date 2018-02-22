@@ -165,7 +165,7 @@ class RGPIODeviceRun1 implements SetCommandListener, GetCommandListener, GpioPin
 }
 }
 
-public class RGPIODevice1 {
+public class RGPIODeviceHouse {
 
     public static void main1(String[] args) {
         new RGPIODeviceRun1().start();

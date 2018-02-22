@@ -1,23 +1,18 @@
 package rgpiodevice;
 
-import java.util.Random;
+import java.util.Scanner;
 import pidevice.*;
+import tcputils.TelnetCommand;
 
 class RGPIODeviceRun implements GetCommandListener {
 
-    DeviceInput[] tempArray = new DeviceInput[4]; // analog input
-    DeviceInput[] humiArray = new DeviceInput[4];  // analog input
-
-    static Integer[] tempValue = new Integer[4]; //2500;
-    static Integer[] humiValue = new Integer[4]; //5000;
+    DeviceInput[] pduArray = new DeviceInput[8]; // analog input
+    static Integer[] pduValue = new Integer[8];
 
     public String onGetCommand(DeviceInput deviceInput) {
-        for (int i = 0; i < 4; i++) {
-            if (deviceInput == tempArray[i]) {
-                return (tempValue[i].toString());
-            }
-            if (deviceInput == humiArray[i]) {
-                return (humiValue[i].toString());
+        for (int i = 0; i < 8; i++) {
+            if (deviceInput == pduArray[i]) {
+                return (pduValue[i].toString());
             }
         }
         return ("impossible!");
@@ -29,16 +24,14 @@ class RGPIODeviceRun implements GetCommandListener {
         // From this information a Report string can be generated
         // PiDevice will call onSetCommand() and onGetCommand() when GET or SET is received
         PiDevice.deviceModel = "RASPBERRY";
-        for (int i = 0; i < 4; i++) {
-            // creating PiDevice pins
-            tempArray[i] = PiDevice.addAnalogInput("T" + i);
-            humiArray[i] = PiDevice.addAnalogInput("H" + i);
-            tempValue[i]= new Integer(0);
-            humiValue[i]= new Integer(0);
-            tempArray[i].getCommandListener = this;
-            humiArray[i].getCommandListener = this;
+        // create PiDevice pins
+        for (int i = 40; i < 49; i++) {
+            pduArray[i] = PiDevice.addAnalogInput("PDU" + i);
+            pduValue[i] = new Integer(0);
+            pduArray[i].getCommandListener = this;
+
         }
-        (new SensorThread(30)).start();  // changes the values every x seconds
+        (new PDUReader(30)).start();  // changes the values every x seconds
 
         PiDevice.runDevice(2600, 2500);
 
@@ -51,21 +44,28 @@ class RGPIODeviceRun implements GetCommandListener {
 
     }
 
-    class SensorThread extends Thread {
+    Float firstFloat(String s) {
+        Float f = null;
+        Scanner scanner = new Scanner(s).useDelimiter("[\r\n ]+");
+        // skip everything that is not float 
+        while (!scanner.hasNextFloat() && scanner.hasNext()) {
+            scanner.next();
+        }
+        if (scanner.hasNextFloat()) {
+            f = scanner.nextFloat();
+        }
+        scanner.close();
+        return f;
+    }
 
-        // thread that simulates changing temperature and humidity values
+    class PDUReader extends Thread {
+
+        // thread that reads the PDU's every interval seconds
         int interval;
-        GaugeSource[] tempSource = new GaugeSource[4];
-        GaugeSource[] humiSource = new GaugeSource[4];
 
-        public SensorThread(int interval) {
-            super("SensorThread");
+        public PDUReader(int interval) {
+            super("PDUReader");
             this.interval = interval;
-            long seed=12345L;
-            for (int i = 0; i < 4; i++) {
-                tempSource[i] = new GaugeSource(seed++, 2500);
-                humiSource[i] = new GaugeSource(seed++, 5000);
-            };
         }
 
         public void run() {
@@ -73,48 +73,37 @@ class RGPIODeviceRun implements GetCommandListener {
             while (true) {
                 try {
                     Thread.sleep(interval * 1000);
-                    for (int i = 0; i < 4; i++) {
-                        tempValue[i] = tempSource[i].getValue();
-                        humiValue[i] = humiSource[i].getValue();
+
+                    TelnetCommand tc = new TelnetCommand();
+
+                    tc.remoteport = 23;
+                    tc.userprompt = "User Name : ";
+                    tc.username = "apc";
+                    tc.passwordprompt = "Password  : ";
+                    tc.password = "apc";
+                    tc.commandprompt = "apc>";
+
+                    for (int i = 8; i >= 1; i--) {
+                        tc.remoteip = "172.68.8.4" + i;
+                        System.out.println("querying " + tc.remoteip);
+                        String result = tc.session("devReading power");
+//            System.out.println(result);
+//            System.out.println("-----------------");
+                        Float f = firstFloat(result);
+                        if (f == null) {
+                            System.out.println(">> " +  "NO RESULT");
+                            pduValue[i]=0;
+                        } else {
+                            System.out.println(">> " +  f + "KWatt");
+                            pduValue[i] = Math.round(f*100);
+                        }
+//            System.out.println("-----------------");
                     }
+
                 } catch (InterruptedException ie) {
                 }
             }
         }
-    }
-
-    class GaugeSource {
-
-        float initialValue;
-        float value;
-        float slope = 0;
-        int countdown = 0;
-        Random RANDOM;
-
-        GaugeSource(long seed, int value) {
-            RANDOM = new Random(seed);
-            this.value = value;
-            this.initialValue = value;
-        }
-
-        int getValue() {
-            if (countdown == 0) {
-                // new slope and countdown  
-                float correction = 0f;
-                if ((value - initialValue) > 0.1 * initialValue) {
-                    correction = -0.2f;
-                }
-                if ((initialValue - value) > 0.1 * initialValue) {
-                    correction = +0.2f;
-                }
-                slope = 100 * ((RANDOM.nextFloat() - 0.5f + correction));
-                countdown = RANDOM.nextInt(5) + 1;
-            }
-            value = value + slope;
-            countdown--;
-            return Math.round(value);
-        }
-
     }
 
 }
