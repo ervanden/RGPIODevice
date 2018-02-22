@@ -25,9 +25,9 @@ class RGPIODeviceRun implements GetCommandListener {
         // PiDevice will call onSetCommand() and onGetCommand() when GET or SET is received
         PiDevice.deviceModel = "RASPBERRY";
         // create PiDevice pins
-        for (int i = 40; i < 49; i++) {
+        for (int i = 1; i <=8; i++) {
             pduArray[i] = PiDevice.addAnalogInput("PDU" + i);
-            pduValue[i] = new Integer(0);
+            pduValue[i] = 0;
             pduArray[i].getCommandListener = this;
 
         }
