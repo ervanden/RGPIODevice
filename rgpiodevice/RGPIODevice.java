@@ -7,7 +7,7 @@ import tcputils.TelnetCommand;
 class RGPIODeviceRun implements GetCommandListener {
 
     DeviceInput[] pduArray = new DeviceInput[9]; // array has 0 - 8, we use 1 - 8
-    static Integer[] pduValue = new Integer[9];  
+    static Integer[] pduValue = new Integer[9];
 
     public String onGetCommand(DeviceInput deviceInput) {
         for (int i = 1; i <= 8; i++) {
@@ -25,7 +25,7 @@ class RGPIODeviceRun implements GetCommandListener {
         // PiDevice will call onSetCommand() and onGetCommand() when GET or SET is received
         PiDevice.deviceModel = "RASPBERRY";
         // create PiDevice pins
-        for (int i = 1; i <=8; i++) {
+        for (int i = 1; i <= 8; i++) {
             pduArray[i] = PiDevice.addAnalogInput("PDU" + i);
             pduValue[i] = 0;
             pduArray[i].getCommandListener = this;
@@ -72,7 +72,6 @@ class RGPIODeviceRun implements GetCommandListener {
 
             while (true) {
                 try {
-                    Thread.sleep(interval * 1000);
 
                     TelnetCommand tc = new TelnetCommand();
 
@@ -83,7 +82,7 @@ class RGPIODeviceRun implements GetCommandListener {
                     tc.password = "apc";
                     tc.commandprompt = "apc>";
 
-                    for (int i = 1; i <=8; i++) {
+                    for (int i = 1; i <= 8; i++) {
                         tc.remoteip = "172.68.8.4" + i;
                         System.out.println("querying " + tc.remoteip);
                         String result = tc.session("devReading power");
@@ -91,14 +90,16 @@ class RGPIODeviceRun implements GetCommandListener {
 //            System.out.println("-----------------");
                         Float f = firstFloat(result);
                         if (f == null) {
-                            System.out.println(">> " +  "NO RESULT");
-                            pduValue[i]=0;
+                            System.out.println(">> " + "NO RESULT");
+                            pduValue[i] = 0;
                         } else {
-                            System.out.println(">> " +  f + "KWatt");
-                            pduValue[i] = Math.round(f*100);
+                            System.out.println(">> " + f + "KWatt");
+                            pduValue[i] = Math.round(f * 100);
                         }
 //            System.out.println("-----------------");
                     }
+                    
+                    Thread.sleep(interval * 1000);
 
                 } catch (InterruptedException ie) {
                 }
