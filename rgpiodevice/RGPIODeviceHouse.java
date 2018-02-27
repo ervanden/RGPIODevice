@@ -6,7 +6,7 @@ import pidevice.*;
 
 
 
-class RGPIODeviceRun1 implements SetCommandListener, GetCommandListener, GpioPinListenerDigital {
+class RGPIODeviceRunHouse implements SetCommandListener, GetCommandListener, GpioPinListenerDigital {
 
     /* This class implements a RGPIO device on Raspberry PI.
      Sending and receiving of REPORT,EVENT,GET,SET.. is handled by PiDevice().
@@ -168,6 +168,6 @@ class RGPIODeviceRun1 implements SetCommandListener, GetCommandListener, GpioPin
 public class RGPIODeviceHouse {
 
     public static void main1(String[] args) {
-        new RGPIODeviceRun1().start();
+        new RGPIODeviceRunHouse().start();
     }
 }
