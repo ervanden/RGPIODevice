@@ -17,6 +17,7 @@ class RGPIODeviceRun implements GetCommandListener {
     static Integer[] humiValue = new Integer[4]; //5000;
 
     public String onGetCommand(DeviceInput deviceInput) {
+
         for (int i = 1; i <= 8; i++) {
             if (deviceInput == pduArray[i]) {
                 return (pduValue[i].toString());
@@ -63,6 +64,7 @@ class RGPIODeviceRun implements GetCommandListener {
         PiDevice.runDevice(2600, 2500);
 
 // todo : convert listener thread back to in line so runDevice does not exit
+
         try {
             Thread.sleep(999999999);
         } catch (Exception e) {
@@ -153,7 +155,6 @@ class RGPIODeviceRun implements GetCommandListener {
         }
 
         public void run() {
-
             while (true) {
                 try {
                     Thread.sleep(interval * 1000);
@@ -203,7 +204,6 @@ class RGPIODeviceRun implements GetCommandListener {
 }
 
 public class RGPIODevice {
-
     public static void main(String[] args) {
         new RGPIODeviceRun().start();
     }
