@@ -16,19 +16,27 @@ class RGPIODeviceRun implements GetCommandListener {
     static Integer[] tempValue = new Integer[4]; //2500;
     static Integer[] humiValue = new Integer[4]; //5000;
 
+    private String integerToString(Integer i) {
+        if (i >= 0) {
+            return i.toString();
+        } else {
+            return null;
+        }
+    }
+
     public String onGetCommand(DeviceInput deviceInput) {
 
         for (int i = 1; i <= 8; i++) {
             if (deviceInput == pduArray[i]) {
-                return (pduValue[i].toString());
+                return (integerToString(pduValue[i]));
             }
         }
         for (int i = 0; i < 4; i++) {
             if (deviceInput == tempArray[i]) {
-                return (tempValue[i].toString());
+                return (integerToString(tempValue[i]));
             }
             if (deviceInput == humiArray[i]) {
-                return (humiValue[i].toString());
+                return (integerToString(humiValue[i]));
             }
         }
         return ("impossible!");
@@ -59,12 +67,11 @@ class RGPIODeviceRun implements GetCommandListener {
         }
 
         (new PDUReader(30)).start();  // changes the values every x seconds
-        (new SensorThread(30)).start();  // changes the temp an humidity values every x seconds
+        (new SensorThread(120)).start();  // changes the temp an humidity values every x seconds
 
         PiDevice.runDevice(2600, 2500);
 
 // todo : convert listener thread back to in line so runDevice does not exit
-
         try {
             Thread.sleep(999999999);
         } catch (Exception e) {
@@ -120,7 +127,7 @@ class RGPIODeviceRun implements GetCommandListener {
                         Float f = firstFloat(result);
                         if (f == null) {
                             System.out.println(">> " + "NO RESULT");
-                            pduValue[i] = 0;
+                            pduValue[i] = -1;
                         } else {
 
                             pduValue[i] = Math.round(f * 100);
@@ -155,13 +162,18 @@ class RGPIODeviceRun implements GetCommandListener {
         }
 
         public void run() {
+            boolean nan = false;
             while (true) {
                 try {
                     Thread.sleep(interval * 1000);
                     for (int i = 0; i < 4; i++) {
                         tempValue[i] = tempSource[i].getValue();
                         humiValue[i] = humiSource[i].getValue();
+                        if (nan) {
+                            tempValue[i] = -1;
+                        }
                     }
+                    nan = !nan;
                 } catch (InterruptedException ie) {
                 }
             }
@@ -204,6 +216,7 @@ class RGPIODeviceRun implements GetCommandListener {
 }
 
 public class RGPIODevice {
+
     public static void main(String[] args) {
         new RGPIODeviceRun().start();
     }
