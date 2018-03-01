@@ -17,10 +17,10 @@ class RGPIODeviceRun implements GetCommandListener {
     static Integer[] humiValue = new Integer[4]; //5000;
 
     private String integerToString(Integer i) {
-        if (i >= 0) {
+        if (i != null) {
             return i.toString();
         } else {
-            return null;
+            return "NaN";
         }
     }
 
@@ -52,7 +52,7 @@ class RGPIODeviceRun implements GetCommandListener {
         // create PiDevice pins
         for (int i = 1; i <= 8; i++) {
             pduArray[i] = PiDevice.addAnalogInput("PDU" + i);
-            pduValue[i] = 0;
+            pduValue[i] = null;
             pduArray[i].getCommandListener = this;
 
         }
@@ -60,8 +60,8 @@ class RGPIODeviceRun implements GetCommandListener {
             // creating PiDevice pins
             tempArray[i] = PiDevice.addAnalogInput("T" + i);
             humiArray[i] = PiDevice.addAnalogInput("H" + i);
-            tempValue[i] = 0;
-            humiValue[i] = 0;
+            tempValue[i] = null;
+            humiValue[i] = null;
             tempArray[i].getCommandListener = this;
             humiArray[i].getCommandListener = this;
         }
@@ -127,7 +127,7 @@ class RGPIODeviceRun implements GetCommandListener {
                         Float f = firstFloat(result);
                         if (f == null) {
                             System.out.println(">> " + "NO RESULT");
-                            pduValue[i] = -1;
+                            pduValue[i] = null;
                         } else {
 
                             pduValue[i] = Math.round(f * 100);
@@ -170,7 +170,7 @@ class RGPIODeviceRun implements GetCommandListener {
                         tempValue[i] = tempSource[i].getValue();
                         humiValue[i] = humiSource[i].getValue();
                         if (nan) {
-                            tempValue[i] = -1;
+                            tempValue[i] = null;
                         }
                     }
                     nan = !nan;
