@@ -130,7 +130,7 @@ class RGPIODeviceRun implements GetCommandListener {
                             pduValue[i] = null;
                         } else {
 
-                            pduValue[i] = Math.round(f * 100);
+                            pduValue[i] = Math.round(f * 1000);
                             System.out.println(">> " + f + " KWatt pduValue=" + pduValue[i]);
                         }
 //            System.out.println("-----------------");
@@ -162,18 +162,13 @@ class RGPIODeviceRun implements GetCommandListener {
         }
 
         public void run() {
-            boolean nan = false;
             while (true) {
                 try {
                     Thread.sleep(interval * 1000);
                     for (int i = 0; i < 4; i++) {
                         tempValue[i] = tempSource[i].getValue();
                         humiValue[i] = humiSource[i].getValue();
-                        if (nan) {
-                            tempValue[i] = null;
-                        }
                     }
-                    nan = !nan;
                 } catch (InterruptedException ie) {
                 }
             }
