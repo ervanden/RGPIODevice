@@ -66,8 +66,8 @@ class RGPIODeviceRun implements GetCommandListener {
             humiArray[i].getCommandListener = this;
         }
 
-        (new PDUReader(5)).start();  // changes the values every x seconds
-        (new SensorThread(5)).start();  // changes the temp an humidity values every x seconds
+        (new PDUReader(5)).start();  // reads the values every x seconds
+        (new SensorThread(120)).start();  // changes the temp and humidity values every x seconds
 
         PiDevice.runDevice(2600, 2500);
 
