@@ -156,7 +156,7 @@ class RGPIODeviceRun implements GetCommandListener {
             this.interval = interval;
             long seed = 12345L;
             for (int i = 0; i < 4; i++) {
-                tempSource[i] = new GaugeSource(seed++, 2500);
+                tempSource[i] = new GaugeSource(seed++, 2050);
                 humiSource[i] = new GaugeSource(seed++, 5000);
             };
         }
